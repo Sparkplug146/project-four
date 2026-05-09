@@ -14,10 +14,18 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.get("/api/categories", (req, res) => {
-  const sql = "SELECT * FROM categories";
+app.get("/api/categories/:id/questions", (req, res) => {
+  const categoryId = req.params.id;
 
-  db.query(sql, (err, results) => {
+  const sql = `
+    SELECT questions.id, questions.title, questions.body, questions.created_at, users.username
+    FROM questions
+    JOIN users ON questions.user_id = users.id
+    WHERE questions.category_id = ?
+    ORDER BY questions.created_at DESC
+  `;
+
+  db.query(sql, [categoryId], (err, results) => {
     if (err) {
       return res.status(500).json({ error: "Database error" });
     }
