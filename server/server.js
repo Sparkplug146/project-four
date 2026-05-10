@@ -49,6 +49,26 @@ app.get("/api/questions/:id", (req, res) => {
   });
 });
 
+app.get("/api/questions/:id/answers", (req, res) => {
+  const questionId = req.params.id;
+
+  const sql = `
+    SELECT answers.id, answers.body, answers.created_at, users.username
+    FROM answers
+    JOIN users ON answers.user_id = users.id
+    WHERE answers.question_id = ?
+    ORDER BY answers.created_at ASC
+  `;
+
+  db.query(sql, [questionId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
