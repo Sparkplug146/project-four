@@ -15,6 +15,14 @@ export default function Dashboard() {
       .catch((err) => console.log(err));
   }, []);
 
+  useEffect(() => {
+  const savedCategory = localStorage.getItem("selectedCategory");
+
+  if (savedCategory) {
+    setSelectedCategory(JSON.parse(savedCategory));
+  }
+}, []);
+
   // Load questions when category is selected
   useEffect(() => {
     if (!selectedCategory) return;
