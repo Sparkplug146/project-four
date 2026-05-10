@@ -1,9 +1,11 @@
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
 export default function QuestionDetails() {
   const { id } = useParams();
-
+  const { user } = useContext(AuthContext);
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
 
@@ -31,7 +33,7 @@ export default function QuestionDetails() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        user_id: 1,
+        user_id: user.id,
         body: newAnswer
       })
     })

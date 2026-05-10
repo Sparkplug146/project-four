@@ -27,7 +27,7 @@ export default function AskQuestion() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        user_id: 1,
+        user_id: user.id,
         category_id: categoryId,
         title: title,
         body: body
