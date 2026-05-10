@@ -1,3 +1,5 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const db = require("./db/db");
 const express = require("express");
 const cors = require("cors");
@@ -136,4 +138,33 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+app.post("/api/auth/register", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password required" });
+  }
+
+  const checkSql = "SELECT * FROM users WHERE username = ?";
+
+  db.query(checkSql, [username], async (err, results) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+
+    if (results.length > 0) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const insertSql =
+      "INSERT INTO users (username, password_hash) VALUES (?, ?)";
+
+    db.query(insertSql, [username, hashedPassword], (err, result) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+
+      res.json({ message: "User registered successfully" });
+    });
+  });
 });
