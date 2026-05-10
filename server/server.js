@@ -24,23 +24,28 @@ app.get("/api/categories", (req, res) => {
   });
 });
 
-app.get("/api/categories/:id/questions", (req, res) => {
-  const categoryId = req.params.id;
+app.get("/api/questions/:id", (req, res) => {
+  const questionId = req.params.id;
 
   const sql = `
-    SELECT questions.id, questions.title, questions.body, questions.created_at, users.username
+    SELECT questions.id, questions.title, questions.body, questions.created_at,
+           users.username, categories.name AS category
     FROM questions
     JOIN users ON questions.user_id = users.id
-    WHERE questions.category_id = ?
-    ORDER BY questions.created_at DESC
+    JOIN categories ON questions.category_id = categories.id
+    WHERE questions.id = ?
   `;
 
-  db.query(sql, [categoryId], (err, results) => {
+  db.query(sql, [questionId], (err, results) => {
     if (err) {
       return res.status(500).json({ error: "Database error" });
     }
 
-    res.json(results);
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    res.json(results[0]);
   });
 });
 
