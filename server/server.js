@@ -24,6 +24,26 @@ app.get("/api/categories", (req, res) => {
   });
 });
 
+app.get("/api/categories/:id/questions", (req, res) => {
+  const categoryId = req.params.id;
+
+  const sql = `
+    SELECT questions.id, questions.title, questions.body, questions.created_at, users.username
+    FROM questions
+    JOIN users ON questions.user_id = users.id
+    WHERE questions.category_id = ?
+    ORDER BY questions.created_at DESC
+  `;
+
+  db.query(sql, [categoryId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
 app.get("/api/questions/:id", (req, res) => {
   const questionId = req.params.id;
 
@@ -46,6 +66,28 @@ app.get("/api/questions/:id", (req, res) => {
     }
 
     res.json(results[0]);
+  });
+});
+
+app.post("/api/questions/:id/answers", (req, res) => {
+  const questionId = req.params.id;
+  const { user_id, body } = req.body;
+
+  if (!user_id || !body) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const sql = `
+    INSERT INTO answers (question_id, user_id, body)
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(sql, [questionId, user_id, body], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json({ message: "Answer added successfully" });
   });
 });
 

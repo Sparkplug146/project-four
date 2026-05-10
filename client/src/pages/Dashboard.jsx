@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const [categories, setCategories] = useState([]);
@@ -68,7 +69,9 @@ export default function Dashboard() {
                     marginBottom: "10px"
                   }}
                 >
-                  <h3>{q.title}</h3>
+                <h3>
+                    <Link to={`/questions/${q.id}`}>{q.title}</Link>
+                </h3>
                   <p>{q.body}</p>
                   <small>
                     Asked by {q.username} on{" "}
