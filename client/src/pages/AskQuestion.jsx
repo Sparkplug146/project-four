@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -6,7 +8,7 @@ export default function AskQuestion() {
   const [categoryId, setCategoryId] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
