@@ -50,6 +50,11 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
+      <Link to="/ask">
+  <button style={{ padding: "10px 15px", marginBottom: "15px" }}>
+    + Ask a Question
+  </button>
+</Link>
       <div style={{ flex: 1, padding: "20px" }}>
         {!selectedCategory ? (
           <h2>Select a Category to view its questions</h2>
