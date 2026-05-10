@@ -111,6 +111,27 @@ app.get("/api/questions/:id/answers", (req, res) => {
   });
 });
 
+app.post("/api/questions", (req, res) => {
+  const { user_id, category_id, title, body } = req.body;
+
+  if (!user_id || !category_id || !title || !body) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const sql = `
+    INSERT INTO questions (user_id, category_id, title, body)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  db.query(sql, [user_id, category_id, title, body], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json({ message: "Question posted successfully" });
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
