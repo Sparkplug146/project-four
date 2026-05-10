@@ -1,10 +1,11 @@
 import { useEffect, useState, useContext } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import Header from "../components/Header";
 
 export default function QuestionDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -12,7 +13,7 @@ export default function QuestionDetails() {
   const [newAnswer, setNewAnswer] = useState("");
   const [message, setMessage] = useState("");
 
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
 
   useEffect(() => {
     fetch(`http://localhost:5000/api/questions/${id}`)
@@ -57,6 +58,30 @@ export default function QuestionDetails() {
       .catch(() => setMessage("Server error"));
   }
 
+  function handleDeleteQuestion() {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this question?"
+    );
+
+    if (!confirmDelete) return;
+
+    fetch(`http://localhost:5000/api/questions/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          navigate("/");
+        }
+      })
+      .catch(() => setMessage("Server error"));
+  }
+
   if (!question) {
     return (
       <div>
@@ -84,11 +109,20 @@ export default function QuestionDetails() {
           {new Date(question.created_at).toLocaleString()}
         </p>
 
+        {user && user.username === question.username && (
+          <button
+            onClick={handleDeleteQuestion}
+            style={{ padding: "10px", marginTop: "10px" }}
+          >
+            Delete Question
+          </button>
+        )}
+
         <div
           style={{
             border: "1px solid black",
             padding: "15px",
-            marginTop: "10px"
+            marginTop: "15px"
           }}
         >
           <p>{question.body}</p>
