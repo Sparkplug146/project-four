@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
 
+  // Load categories
   useEffect(() => {
     fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
@@ -14,14 +15,20 @@ export default function Dashboard() {
       .catch((err) => console.log(err));
   }, []);
 
-  function handleCategoryClick(category) {
-    setSelectedCategory(category);
+  // Load questions when category is selected
+  useEffect(() => {
+    if (!selectedCategory) return;
 
-    fetch(`http://localhost:5000/api/categories/${category.id}/questions`)
+    fetch(`http://localhost:5000/api/categories/${selectedCategory.id}/questions`)
       .then((res) => res.json())
       .then((data) => setQuestions(data))
       .catch((err) => console.log(err));
-  }
+  }, [selectedCategory]);
+
+  function handleCategoryClick(category) {
+  setSelectedCategory(category);
+  localStorage.setItem("selectedCategory", JSON.stringify(category));
+}
 
   return (
     <div>
