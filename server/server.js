@@ -140,6 +140,45 @@ app.post("/api/questions", authMiddleware, (req, res) => {
 });
 const PORT = process.env.PORT || 5000;
 
+app.delete("/api/questions/:id", authMiddleware, (req, res) => {
+  const questionId = req.params.id;
+  const userId = req.user.id;
+
+  // First: check if question exists + who owns it
+  const checkSql = "SELECT * FROM questions WHERE id = ?";
+
+  db.query(checkSql, [questionId], (err, results) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    const question = results[0];
+
+    // Only owner can delete
+    if (question.user_id !== userId) {
+      return res.status(403).json({ error: "Not authorized to delete this question" });
+    }
+
+    // Delete answers first (foreign key constraint)
+    const deleteAnswersSql = "DELETE FROM answers WHERE question_id = ?";
+
+    db.query(deleteAnswersSql, [questionId], (err) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+
+      // Delete question
+      const deleteQuestionSql = "DELETE FROM questions WHERE id = ?";
+
+      db.query(deleteQuestionSql, [questionId], (err) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+
+        res.json({ message: "Question deleted successfully" });
+      });
+    });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
