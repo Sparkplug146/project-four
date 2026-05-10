@@ -1,3 +1,4 @@
+const authMiddleware = require("./middleware/auth");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("./db/db");
@@ -71,12 +72,14 @@ app.get("/api/questions/:id", (req, res) => {
   });
 });
 
-app.post("/api/questions/:id/answers", (req, res) => {
+app.post("/api/questions/:id/answers", authMiddleware, (req, res) => {
   const questionId = req.params.id;
-  const { user_id, body } = req.body;
+  const { body } = req.body;
 
-  if (!user_id || !body) {
-    return res.status(400).json({ error: "Missing required fields" });
+  const user_id = req.user.id;
+
+  if (!body) {
+    return res.status(400).json({ error: "Answer body required" });
   }
 
   const sql = `
@@ -113,10 +116,12 @@ app.get("/api/questions/:id/answers", (req, res) => {
   });
 });
 
-app.post("/api/questions", (req, res) => {
-  const { user_id, category_id, title, body } = req.body;
+app.post("/api/questions", authMiddleware, (req, res) => {
+  const { category_id, title, body } = req.body;
 
-  if (!user_id || !category_id || !title || !body) {
+  const user_id = req.user.id;
+
+  if (!category_id || !title || !body) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -133,7 +138,6 @@ app.post("/api/questions", (req, res) => {
     res.json({ message: "Question posted successfully" });
   });
 });
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
