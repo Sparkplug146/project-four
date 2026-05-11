@@ -179,6 +179,40 @@ app.delete("/api/questions/:id", authMiddleware, (req, res) => {
   });
 });
 
+app.put("/api/questions/:id", authMiddleware, (req, res) => {
+  const questionId = req.params.id;
+  const userId = req.user.id;
+  const { title, body } = req.body;
+
+  if (!title || !body) {
+    return res.status(400).json({ error: "Title and body required" });
+  }
+
+  const checkSql = "SELECT * FROM questions WHERE id = ?";
+
+  db.query(checkSql, [questionId], (err, results) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    const question = results[0];
+
+    if (question.user_id !== userId) {
+      return res.status(403).json({ error: "Not authorized to edit this question" });
+    }
+
+    const updateSql = "UPDATE questions SET title = ?, body = ? WHERE id = ?";
+
+    db.query(updateSql, [title, body, questionId], (err) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+
+      res.json({ message: "Question updated successfully" });
+    });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
