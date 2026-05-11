@@ -213,6 +213,38 @@ app.put("/api/questions/:id", authMiddleware, (req, res) => {
   });
 });
 
+app.delete("/api/answers/:id", authMiddleware, (req, res) => {
+  const answerId = req.params.id;
+  const userId = req.user.id;
+
+  // Check if answer exists + who owns it
+  const checkSql = "SELECT * FROM answers WHERE id = ?";
+
+  db.query(checkSql, [answerId], (err, results) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Answer not found" });
+    }
+
+    const answer = results[0];
+
+    // Only owner can delete
+    if (answer.user_id !== userId) {
+      return res.status(403).json({ error: "Not authorized to delete this answer" });
+    }
+
+    // Delete answer
+    const deleteSql = "DELETE FROM answers WHERE id = ?";
+
+    db.query(deleteSql, [answerId], (err) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+
+      res.json({ message: "Answer deleted successfully" });
+    });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
