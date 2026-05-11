@@ -120,6 +120,33 @@ export default function QuestionDetails() {
       .catch(() => setMessage("Server error"));
   }
 
+  function handleDeleteAnswer(answerId) {
+  const confirmDelete = window.confirm("Delete this answer?");
+
+  if (!confirmDelete) return;
+
+  fetch(`http://localhost:5000/api/answers/${answerId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error) {
+        setMessage(data.error);
+      } else {
+        setMessage(data.message);
+
+        // reload answers
+        fetch(`http://localhost:5000/api/questions/${id}/answers`)
+          .then((res) => res.json())
+          .then((data) => setAnswers(data));
+      }
+    })
+    .catch(() => setMessage("Server error"));
+}
+
   if (!question) {
     return (
       <div>
