@@ -5,6 +5,7 @@ import QuestionDetails from "./pages/QuestionDetails";
 import AskQuestion from "./pages/AskQuestion";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import NotFound from "./pages/NotFound";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -43,6 +44,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* 404 Page */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
