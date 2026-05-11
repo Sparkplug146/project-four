@@ -13,12 +13,20 @@ export default function QuestionDetails() {
   const [newAnswer, setNewAnswer] = useState("");
   const [message, setMessage] = useState("");
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+
   const { token, user } = useContext(AuthContext);
 
   useEffect(() => {
     fetch(`http://localhost:5000/api/questions/${id}`)
       .then((res) => res.json())
-      .then((data) => setQuestion(data))
+      .then((data) => {
+        setQuestion(data);
+        setEditTitle(data.title);
+        setEditBody(data.body);
+      })
       .catch((err) => console.log(err));
 
     fetch(`http://localhost:5000/api/questions/${id}/answers`)
@@ -82,6 +90,36 @@ export default function QuestionDetails() {
       .catch(() => setMessage("Server error"));
   }
 
+  function handleEditSubmit(e) {
+    e.preventDefault();
+
+    fetch(`http://localhost:5000/api/questions/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title: editTitle,
+        body: editBody
+      })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          setMessage(data.message);
+          setIsEditing(false);
+
+          fetch(`http://localhost:5000/api/questions/${id}`)
+            .then((res) => res.json())
+            .then((data) => setQuestion(data));
+        }
+      })
+      .catch(() => setMessage("Server error"));
+  }
+
   if (!question) {
     return (
       <div>
@@ -98,35 +136,86 @@ export default function QuestionDetails() {
       <div style={{ padding: "20px" }}>
         <Link to="/">⬅ Back to Dashboard</Link>
 
-        <h1>{question.title}</h1>
+        {!isEditing ? (
+          <>
+            <h1>{question.title}</h1>
 
-        <p>
-          <strong>Category:</strong> {question.category}
-        </p>
+            <p>
+              <strong>Category:</strong> {question.category}
+            </p>
 
-        <p>
-          <strong>Asked by:</strong> {question.username} |{" "}
-          {new Date(question.created_at).toLocaleString()}
-        </p>
+            <p>
+              <strong>Asked by:</strong> {question.username} |{" "}
+              {new Date(question.created_at).toLocaleString()}
+            </p>
 
-        {user && user.username === question.username && (
-          <button
-            onClick={handleDeleteQuestion}
-            style={{ padding: "10px", marginTop: "10px" }}
-          >
-            Delete Question
-          </button>
+            {user && user.username === question.username && (
+              <div style={{ marginTop: "10px" }}>
+                <button
+                  onClick={handleDeleteQuestion}
+                  style={{ padding: "10px" }}
+                >
+                  Delete Question
+                </button>
+
+                <button
+                  onClick={() => setIsEditing(true)}
+                  style={{ padding: "10px", marginLeft: "10px" }}
+                >
+                  Edit Question
+                </button>
+              </div>
+            )}
+
+            <div
+              style={{
+                border: "1px solid black",
+                padding: "15px",
+                marginTop: "15px"
+              }}
+            >
+              <p>{question.body}</p>
+            </div>
+          </>
+        ) : (
+          <form onSubmit={handleEditSubmit}>
+            <h2>Edit Question</h2>
+
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: "100%", padding: "10px", fontSize: "18px" }}
+            />
+
+            <br />
+            <br />
+
+            <textarea
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              rows="6"
+              style={{ width: "100%", padding: "10px" }}
+            />
+
+            <br />
+
+            <button type="submit" style={{ padding: "10px", marginTop: "10px" }}>
+              Save Changes
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              style={{
+                padding: "10px",
+                marginTop: "10px",
+                marginLeft: "10px"
+              }}
+            >
+              Cancel
+            </button>
+          </form>
         )}
-
-        <div
-          style={{
-            border: "1px solid black",
-            padding: "15px",
-            marginTop: "15px"
-          }}
-        >
-          <p>{question.body}</p>
-        </div>
 
         <h2 style={{ marginTop: "30px" }}>Answers</h2>
 
