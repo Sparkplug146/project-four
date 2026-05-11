@@ -17,6 +17,9 @@ export default function QuestionDetails() {
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
 
+  const [editingAnswerId, setEditingAnswerId] = useState(null);
+  const [editAnswerBody, setEditAnswerBody] = useState("");
+
   const { token, user } = useContext(AuthContext);
 
   useEffect(() => {
@@ -34,6 +37,12 @@ export default function QuestionDetails() {
       .then((data) => setAnswers(data))
       .catch((err) => console.log(err));
   }, [id]);
+
+  function reloadAnswers() {
+    fetch(`http://localhost:5000/api/questions/${id}/answers`)
+      .then((res) => res.json())
+      .then((data) => setAnswers(data));
+  }
 
   function handleSubmitAnswer(e) {
     e.preventDefault();
@@ -57,10 +66,7 @@ export default function QuestionDetails() {
         } else {
           setMessage(data.message);
           setNewAnswer("");
-
-          fetch(`http://localhost:5000/api/questions/${id}/answers`)
-            .then((res) => res.json())
-            .then((data) => setAnswers(data));
+          reloadAnswers();
         }
       })
       .catch(() => setMessage("Server error"));
@@ -137,10 +143,42 @@ export default function QuestionDetails() {
           setMessage(data.error);
         } else {
           setMessage(data.message);
+          reloadAnswers();
+        }
+      })
+      .catch(() => setMessage("Server error"));
+  }
 
-          fetch(`http://localhost:5000/api/questions/${id}/answers`)
-            .then((res) => res.json())
-            .then((data) => setAnswers(data));
+  function handleStartEditAnswer(answer) {
+    setEditingAnswerId(answer.id);
+    setEditAnswerBody(answer.body);
+  }
+
+  function handleCancelEditAnswer() {
+    setEditingAnswerId(null);
+    setEditAnswerBody("");
+  }
+
+  function handleSaveEditAnswer(answerId) {
+    fetch(`http://localhost:5000/api/answers/${answerId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        body: editAnswerBody
+      })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          setMessage(data.message);
+          setEditingAnswerId(null);
+          setEditAnswerBody("");
+          reloadAnswers();
         }
       })
       .catch(() => setMessage("Server error"));
@@ -260,22 +298,60 @@ export default function QuestionDetails() {
                 marginBottom: "10px"
               }}
             >
-              <p>{a.body}</p>
+              {editingAnswerId === a.id ? (
+                <>
+                  <textarea
+                    value={editAnswerBody}
+                    onChange={(e) => setEditAnswerBody(e.target.value)}
+                    rows="4"
+                    style={{ width: "100%", padding: "10px" }}
+                  />
 
-              <small>
-                Answered by {a.username} on{" "}
-                {new Date(a.created_at).toLocaleString()}
-              </small>
-
-              {user && user.username === a.username && (
-                <div>
                   <button
-                    onClick={() => handleDeleteAnswer(a.id)}
+                    onClick={() => handleSaveEditAnswer(a.id)}
                     style={{ marginTop: "10px", padding: "6px 10px" }}
                   >
-                    Delete Answer
+                    Save
                   </button>
-                </div>
+
+                  <button
+                    onClick={handleCancelEditAnswer}
+                    style={{
+                      marginTop: "10px",
+                      padding: "6px 10px",
+                      marginLeft: "10px"
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>{a.body}</p>
+
+                  <small>
+                    Answered by {a.username} on{" "}
+                    {new Date(a.created_at).toLocaleString()}
+                  </small>
+
+                  {user && user.username === a.username && (
+                    <div style={{ marginTop: "10px" }}>
+                      <button
+                        onClick={() => handleDeleteAnswer(a.id)}
+                        style={{ padding: "6px 10px" }}
+                      >
+                        Delete Answer
+                      </button>
+
+                      <button
+                        onClick={() => handleStartEditAnswer(a)}
+                        style={{ padding: "6px 10px", marginLeft: "10px" }}
+                      >
+                        Edit Answer
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ))
