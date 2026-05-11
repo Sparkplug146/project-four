@@ -121,31 +121,30 @@ export default function QuestionDetails() {
   }
 
   function handleDeleteAnswer(answerId) {
-  const confirmDelete = window.confirm("Delete this answer?");
+    const confirmDelete = window.confirm("Delete this answer?");
 
-  if (!confirmDelete) return;
+    if (!confirmDelete) return;
 
-  fetch(`http://localhost:5000/api/answers/${answerId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.error) {
-        setMessage(data.error);
-      } else {
-        setMessage(data.message);
-
-        // reload answers
-        fetch(`http://localhost:5000/api/questions/${id}/answers`)
-          .then((res) => res.json())
-          .then((data) => setAnswers(data));
+    fetch(`http://localhost:5000/api/answers/${answerId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
       }
     })
-    .catch(() => setMessage("Server error"));
-}
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          setMessage(data.message);
+
+          fetch(`http://localhost:5000/api/questions/${id}/answers`)
+            .then((res) => res.json())
+            .then((data) => setAnswers(data));
+        }
+      })
+      .catch(() => setMessage("Server error"));
+  }
 
   if (!question) {
     return (
@@ -226,7 +225,10 @@ export default function QuestionDetails() {
 
             <br />
 
-            <button type="submit" style={{ padding: "10px", marginTop: "10px" }}>
+            <button
+              type="submit"
+              style={{ padding: "10px", marginTop: "10px" }}
+            >
               Save Changes
             </button>
 
@@ -259,10 +261,22 @@ export default function QuestionDetails() {
               }}
             >
               <p>{a.body}</p>
+
               <small>
                 Answered by {a.username} on{" "}
                 {new Date(a.created_at).toLocaleString()}
               </small>
+
+              {user && user.username === a.username && (
+                <div>
+                  <button
+                    onClick={() => handleDeleteAnswer(a.id)}
+                    style={{ marginTop: "10px", padding: "6px 10px" }}
+                  >
+                    Delete Answer
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
