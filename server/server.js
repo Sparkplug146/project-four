@@ -279,6 +279,17 @@ app.put("/api/answers/:id", authMiddleware, (req, res) => {
   });
 });
 
+//API 404 handler
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "API route not found" });
+});
+
+//Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Server error" });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
