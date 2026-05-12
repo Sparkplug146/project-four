@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import Header from "../components/Header";
+import "../styles/QuestionDetails.css";
 
 export default function QuestionDetails() {
   const { id } = useParams();
@@ -29,7 +30,6 @@ export default function QuestionDetails() {
   const { token, user } = useContext(AuthContext);
 
   useEffect(() => {
-    // Load Question
     setLoadingQuestion(true);
     setQuestionError("");
 
@@ -52,7 +52,6 @@ export default function QuestionDetails() {
         setLoadingQuestion(false);
       });
 
-    // Load Answers
     setLoadingAnswers(true);
     setAnswersError("");
 
@@ -142,6 +141,7 @@ export default function QuestionDetails() {
 
   function handleEditSubmit(e) {
     e.preventDefault();
+    setMessage("");
 
     if (!editTitle.trim() || !editBody.trim()) {
       setMessage("Title and body cannot be empty.");
@@ -182,7 +182,6 @@ export default function QuestionDetails() {
 
   function handleDeleteAnswer(answerId) {
     const confirmDelete = window.confirm("Delete this answer?");
-
     if (!confirmDelete) return;
 
     fetch(`http://localhost:5000/api/answers/${answerId}`, {
@@ -214,6 +213,8 @@ export default function QuestionDetails() {
   }
 
   function handleSaveEditAnswer(answerId) {
+    setMessage("");
+
     if (!editAnswerBody.trim()) {
       setMessage("Answer cannot be empty.");
       return;
@@ -243,7 +244,6 @@ export default function QuestionDetails() {
       .catch(() => setMessage("Server error"));
   }
 
-  // Loading / Error handling for Question
   if (loadingQuestion) {
     return (
       <div>
@@ -257,8 +257,8 @@ export default function QuestionDetails() {
     return (
       <div>
         <Header />
-        <div style={{ padding: "20px" }}>
-          <h2 style={{ color: "red" }}>{questionError}</h2>
+        <div className="question-details-container">
+          <h2 className="error-message">{questionError}</h2>
           <Link to="/">⬅ Back to Dashboard</Link>
         </div>
       </div>
@@ -269,8 +269,10 @@ export default function QuestionDetails() {
     <div>
       <Header />
 
-      <div style={{ padding: "20px" }}>
-        <Link to="/">⬅ Back to Dashboard</Link>
+      <div className="question-details-container">
+        <Link to="/" className="back-link">
+          ⬅ Back to Dashboard
+        </Link>
 
         {!isEditing ? (
           <>
@@ -286,41 +288,23 @@ export default function QuestionDetails() {
             </p>
 
             {user && user.username === question.username && (
-              <div style={{ marginTop: "10px" }}>
-                <button
-                  onClick={handleDeleteQuestion}
-                  style={{ padding: "10px" }}
-                >
-                  Delete Question
-                </button>
-
-                <button
-                  onClick={() => setIsEditing(true)}
-                  style={{ padding: "10px", marginLeft: "10px" }}
-                >
-                  Edit Question
-                </button>
+              <div className="question-actions">
+                <button onClick={handleDeleteQuestion}>Delete Question</button>
+                <button onClick={() => setIsEditing(true)}>Edit Question</button>
               </div>
             )}
 
-            <div
-              style={{
-                border: "1px solid black",
-                padding: "15px",
-                marginTop: "15px"
-              }}
-            >
+            <div className="question-box">
               <p>{question.body}</p>
             </div>
           </>
         ) : (
-          <form onSubmit={handleEditSubmit}>
+          <form className="edit-form" onSubmit={handleEditSubmit}>
             <h2>Edit Question</h2>
 
             <input
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              style={{ width: "100%", padding: "10px", fontSize: "18px" }}
             />
 
             <br />
@@ -330,26 +314,16 @@ export default function QuestionDetails() {
               value={editBody}
               onChange={(e) => setEditBody(e.target.value)}
               rows="6"
-              style={{ width: "100%", padding: "10px" }}
             />
 
-            <br />
-
-            <button
-              type="submit"
-              style={{ padding: "10px", marginTop: "10px" }}
-            >
+            <button className="submit-btn" type="submit">
               Save Changes
             </button>
 
             <button
+              className="submit-btn"
               type="button"
               onClick={() => setIsEditing(false)}
-              style={{
-                padding: "10px",
-                marginTop: "10px",
-                marginLeft: "10px"
-              }}
             >
               Cancel
             </button>
@@ -361,19 +335,12 @@ export default function QuestionDetails() {
         {loadingAnswers ? (
           <p>Loading answers...</p>
         ) : answersError ? (
-          <p style={{ color: "red" }}>{answersError}</p>
+          <p className="error-message">{answersError}</p>
         ) : answers.length === 0 ? (
           <p>No answers yet.</p>
         ) : (
           answers.map((a) => (
-            <div
-              key={a.id}
-              style={{
-                border: "1px solid gray",
-                padding: "10px",
-                marginBottom: "10px"
-              }}
-            >
+            <div key={a.id} className="answer-card">
               {editingAnswerId === a.id ? (
                 <>
                   <textarea
@@ -383,23 +350,13 @@ export default function QuestionDetails() {
                     style={{ width: "100%", padding: "10px" }}
                   />
 
-                  <button
-                    onClick={() => handleSaveEditAnswer(a.id)}
-                    style={{ marginTop: "10px", padding: "6px 10px" }}
-                  >
-                    Save
-                  </button>
+                  <div className="answer-actions">
+                    <button onClick={() => handleSaveEditAnswer(a.id)}>
+                      Save
+                    </button>
 
-                  <button
-                    onClick={handleCancelEditAnswer}
-                    style={{
-                      marginTop: "10px",
-                      padding: "6px 10px",
-                      marginLeft: "10px"
-                    }}
-                  >
-                    Cancel
-                  </button>
+                    <button onClick={handleCancelEditAnswer}>Cancel</button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -411,18 +368,12 @@ export default function QuestionDetails() {
                   </small>
 
                   {user && user.username === a.username && (
-                    <div style={{ marginTop: "10px" }}>
-                      <button
-                        onClick={() => handleDeleteAnswer(a.id)}
-                        style={{ padding: "6px 10px" }}
-                      >
+                    <div className="answer-actions">
+                      <button onClick={() => handleDeleteAnswer(a.id)}>
                         Delete Answer
                       </button>
 
-                      <button
-                        onClick={() => handleStartEditAnswer(a)}
-                        style={{ padding: "6px 10px", marginLeft: "10px" }}
-                      >
+                      <button onClick={() => handleStartEditAnswer(a)}>
                         Edit Answer
                       </button>
                     </div>
@@ -435,21 +386,20 @@ export default function QuestionDetails() {
 
         <h2 style={{ marginTop: "30px" }}>Add Answer</h2>
 
-        <form onSubmit={handleSubmitAnswer}>
+        <form className="add-answer" onSubmit={handleSubmitAnswer}>
           <textarea
             value={newAnswer}
             onChange={(e) => setNewAnswer(e.target.value)}
             rows="5"
-            style={{ width: "100%", padding: "10px" }}
             placeholder="Write your answer here..."
           />
 
-          <button style={{ marginTop: "10px", padding: "10px" }} type="submit">
+          <button className="submit-btn" type="submit">
             Submit Answer
           </button>
         </form>
 
-        {message && <p style={{ color: "red" }}>{message}</p>}
+        {message && <p className="error-message">{message}</p>}
       </div>
     </div>
   );
