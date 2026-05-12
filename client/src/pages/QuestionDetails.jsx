@@ -20,34 +20,78 @@ export default function QuestionDetails() {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editAnswerBody, setEditAnswerBody] = useState("");
 
+  const [loadingQuestion, setLoadingQuestion] = useState(true);
+  const [loadingAnswers, setLoadingAnswers] = useState(true);
+
+  const [questionError, setQuestionError] = useState("");
+  const [answersError, setAnswersError] = useState("");
+
   const { token, user } = useContext(AuthContext);
 
   useEffect(() => {
+    // Load Question
+    setLoadingQuestion(true);
+    setQuestionError("");
+
     fetch(`http://localhost:5000/api/questions/${id}`)
       .then((res) => res.json())
       .then((data) => {
+        if (data.error) {
+          setQuestionError(data.error);
+          setLoadingQuestion(false);
+          return;
+        }
+
         setQuestion(data);
         setEditTitle(data.title);
         setEditBody(data.body);
+        setLoadingQuestion(false);
       })
-      .catch((err) => console.log(err));
+      .catch(() => {
+        setQuestionError("Failed to load question.");
+        setLoadingQuestion(false);
+      });
+
+    // Load Answers
+    setLoadingAnswers(true);
+    setAnswersError("");
 
     fetch(`http://localhost:5000/api/questions/${id}/answers`)
       .then((res) => res.json())
-      .then((data) => setAnswers(data))
-      .catch((err) => console.log(err));
+      .then((data) => {
+        setAnswers(data);
+        setLoadingAnswers(false);
+      })
+      .catch(() => {
+        setAnswersError("Failed to load answers.");
+        setLoadingAnswers(false);
+      });
   }, [id]);
 
   function reloadAnswers() {
+    setLoadingAnswers(true);
+    setAnswersError("");
+
     fetch(`http://localhost:5000/api/questions/${id}/answers`)
       .then((res) => res.json())
-      .then((data) => setAnswers(data));
+      .then((data) => {
+        setAnswers(data);
+        setLoadingAnswers(false);
+      })
+      .catch(() => {
+        setAnswersError("Failed to load answers.");
+        setLoadingAnswers(false);
+      });
   }
 
   function handleSubmitAnswer(e) {
     e.preventDefault();
-
     setMessage("");
+
+    if (!newAnswer.trim()) {
+      setMessage("Answer cannot be empty.");
+      return;
+    }
 
     fetch(`http://localhost:5000/api/questions/${id}/answers`, {
       method: "POST",
@@ -99,6 +143,11 @@ export default function QuestionDetails() {
   function handleEditSubmit(e) {
     e.preventDefault();
 
+    if (!editTitle.trim() || !editBody.trim()) {
+      setMessage("Title and body cannot be empty.");
+      return;
+    }
+
     fetch(`http://localhost:5000/api/questions/${id}`, {
       method: "PUT",
       headers: {
@@ -118,9 +167,14 @@ export default function QuestionDetails() {
           setMessage(data.message);
           setIsEditing(false);
 
+          setLoadingQuestion(true);
+
           fetch(`http://localhost:5000/api/questions/${id}`)
             .then((res) => res.json())
-            .then((data) => setQuestion(data));
+            .then((data) => {
+              setQuestion(data);
+              setLoadingQuestion(false);
+            });
         }
       })
       .catch(() => setMessage("Server error"));
@@ -160,6 +214,11 @@ export default function QuestionDetails() {
   }
 
   function handleSaveEditAnswer(answerId) {
+    if (!editAnswerBody.trim()) {
+      setMessage("Answer cannot be empty.");
+      return;
+    }
+
     fetch(`http://localhost:5000/api/answers/${answerId}`, {
       method: "PUT",
       headers: {
@@ -184,11 +243,24 @@ export default function QuestionDetails() {
       .catch(() => setMessage("Server error"));
   }
 
-  if (!question) {
+  // Loading / Error handling for Question
+  if (loadingQuestion) {
     return (
       <div>
         <Header />
-        <h2 style={{ padding: "20px" }}>Loading...</h2>
+        <h2 style={{ padding: "20px" }}>Loading question...</h2>
+      </div>
+    );
+  }
+
+  if (questionError) {
+    return (
+      <div>
+        <Header />
+        <div style={{ padding: "20px" }}>
+          <h2 style={{ color: "red" }}>{questionError}</h2>
+          <Link to="/">⬅ Back to Dashboard</Link>
+        </div>
       </div>
     );
   }
@@ -286,7 +358,11 @@ export default function QuestionDetails() {
 
         <h2 style={{ marginTop: "30px" }}>Answers</h2>
 
-        {answers.length === 0 ? (
+        {loadingAnswers ? (
+          <p>Loading answers...</p>
+        ) : answersError ? (
+          <p style={{ color: "red" }}>{answersError}</p>
+        ) : answers.length === 0 ? (
           <p>No answers yet.</p>
         ) : (
           answers.map((a) => (
