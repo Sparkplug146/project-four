@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import "../styles/Auth.css";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -10,7 +11,6 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (localStorage.getItem("token")) {
       navigate("/");
@@ -20,8 +20,8 @@ export default function Register() {
   function validate() {
     let newErrors = {};
 
-    if (!username) newErrors.username = "Username required";
-    if (!password) newErrors.password = "Password required";
+    if (!username.trim()) newErrors.username = "Username required";
+    if (!password.trim()) newErrors.password = "Password required";
     if (password !== confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
     if (!agree) newErrors.agree = "You must agree";
@@ -56,12 +56,14 @@ export default function Register() {
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>DevDen Forum</h1>
-      <h2>Register</h2>
+    <div className="auth-container">
+      <div className="auth-title">
+        <h1>DevDen Forum</h1>
+        <h2>Register</h2>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div>
           <input
             placeholder="Username"
             value={username}
@@ -70,12 +72,10 @@ export default function Register() {
               setErrors((prev) => ({ ...prev, username: "" }));
             }}
           />
-          <span style={{ color: "red" }}>{errors.username}</span>
+          {errors.username && <p className="auth-error">{errors.username}</p>}
         </div>
 
-        <br />
-
-        <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+        <div>
           <input
             placeholder="Password"
             type="password"
@@ -85,12 +85,10 @@ export default function Register() {
               setErrors((prev) => ({ ...prev, password: "" }));
             }}
           />
-          <span style={{ color: "red" }}>{errors.password}</span>
+          {errors.password && <p className="auth-error">{errors.password}</p>}
         </div>
 
-        <br />
-
-        <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+        <div>
           <input
             placeholder="Confirm Password"
             type="password"
@@ -100,12 +98,12 @@ export default function Register() {
               setErrors((prev) => ({ ...prev, confirmPassword: "" }));
             }}
           />
-          <span style={{ color: "red" }}>{errors.confirmPassword}</span>
+          {errors.confirmPassword && (
+            <p className="auth-error">{errors.confirmPassword}</p>
+          )}
         </div>
 
-        <br />
-
-        <label style={{ color: errors.agree ? "red" : "black" }}>
+        <div className="auth-checkbox">
           <input
             type="checkbox"
             checked={agree}
@@ -113,21 +111,22 @@ export default function Register() {
               setAgree(e.target.checked);
               setErrors((prev) => ({ ...prev, agree: "" }));
             }}
-          />{" "}
-          I agree to the terms
-        </label>
+          />
+          <label>I agree to the terms</label>
+        </div>
 
-        <br />
-        <br />
+        {errors.agree && <p className="auth-error">{errors.agree}</p>}
 
         <button type="submit">Register</button>
       </form>
 
-      {errors.server && <p style={{ color: "red" }}>{errors.server}</p>}
+      {errors.server && <p className="auth-error">{errors.server}</p>}
 
-      <p>
-        Already have an account? <Link to="/login">Login</Link>
-      </p>
+      <div className="auth-footer">
+        <p>
+          Already have an account? <Link to="/login">Login</Link>
+        </p>
+      </div>
     </div>
   );
 }
