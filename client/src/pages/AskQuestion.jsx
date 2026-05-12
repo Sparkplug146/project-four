@@ -2,29 +2,43 @@ import { useEffect, useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import Header from "../components/Header";
+import "../styles/AskQuestion.css";
 
 export default function AskQuestion() {
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("");
+
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [message, setMessage] = useState("");
 
-  const { token } = useContext(AuthContext);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { token } = useContext(AuthContext);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
-      .catch((err) => console.log(err));
+      .catch(() => setError("Failed to load categories."));
   }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
 
+    setError("");
     setMessage("");
+
+    if (!categoryId) {
+      setError("Please select a category.");
+      return;
+    }
+
+    if (!title.trim() || !body.trim()) {
+      setError("Title and body cannot be empty.");
+      return;
+    }
 
     fetch("http://localhost:5000/api/questions", {
       method: "POST",
@@ -34,39 +48,38 @@ export default function AskQuestion() {
       },
       body: JSON.stringify({
         category_id: categoryId,
-        title: title,
-        body: body
+        title,
+        body
       })
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          setMessage(data.error);
+          setError(data.error);
         } else {
+          setMessage("Question posted successfully!");
           navigate("/");
         }
       })
-      .catch(() => setMessage("Server error"));
+      .catch(() => setError("Server error"));
   }
 
   return (
     <div>
       <Header />
 
-      <div style={{ padding: "20px" }}>
+      <div className="ask-container">
         <Link to="/">⬅ Back to Dashboard</Link>
 
         <h1>Ask a Question</h1>
 
-        <form onSubmit={handleSubmit}>
-          <label>Category:</label>
-          <br />
+        <form className="ask-form" onSubmit={handleSubmit}>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            style={{ width: "300px", padding: "8px" }}
           >
             <option value="">-- Select Category --</option>
+
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -74,39 +87,24 @@ export default function AskQuestion() {
             ))}
           </select>
 
-          <br />
-          <br />
-
-          <label>Title:</label>
-          <br />
           <input
-            type="text"
+            placeholder="Question Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{ width: "500px", padding: "8px" }}
           />
 
-          <br />
-          <br />
-
-          <label>Question:</label>
-          <br />
           <textarea
+            rows="6"
+            placeholder="Describe your question..."
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            rows="6"
-            style={{ width: "500px", padding: "8px" }}
           />
 
-          <br />
-          <br />
-
-          <button type="submit" style={{ padding: "10px 20px" }}>
-            Post Question
-          </button>
+          <button type="submit">Post Question</button>
         </form>
 
-        {message && <p style={{ color: "red" }}>{message}</p>}
+        {error && <p className="ask-error">{error}</p>}
+        {message && <p className="ask-success">{message}</p>}
       </div>
     </div>
   );
