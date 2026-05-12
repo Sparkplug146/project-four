@@ -1,0 +1,76 @@
+.question-details-container {
+  padding: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.question-box {
+  border: 1px solid black;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 5px;
+}
+
+.question-actions {
+  margin-top: 10px;
+}
+
+.question-actions button {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.question-actions button + button {
+  margin-left: 10px;
+}
+
+.answer-card {
+  border: 1px solid gray;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.answer-actions {
+  margin-top: 10px;
+}
+
+.answer-actions button {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.answer-actions button + button {
+  margin-left: 10px;
+}
+
+textarea,
+input {
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+.edit-form input,
+.edit-form textarea {
+  width: 100%;
+  padding: 10px;
+}
+
+.add-answer textarea {
+  width: 100%;
+  padding: 10px;
+}
+
+.submit-btn {
+  margin-top: 10px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
