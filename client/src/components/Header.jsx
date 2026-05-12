@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import "../styles/Header.css";
 
 export default function Header() {
   const { user, logout } = useContext(AuthContext);
@@ -12,27 +13,15 @@ export default function Header() {
   }
 
   return (
-    <div
-      style={{
-        borderBottom: "1px solid black",
-        padding: "15px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}
-    >
-      <h2 style={{ margin: 0 }}>
-        <Link to="/" style={{ textDecoration: "none", color: "black" }}>
-          DevDen Forum
-        </Link>
-      </h2>
+    <div className="header">
+      <Link to="/" className="header-title">
+        DevDen Forum
+      </Link>
 
-      <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-        <span>{user ? `Welcome, ${user.username}` : ""}</span>
+      <div className="header-right">
+        {user && <span className="header-user">Logged in as {user.username}</span>}
 
-        <button onClick={handleLogout} style={{ padding: "8px 12px" }}>
-          Logout
-        </button>
+        <button onClick={handleLogout}>Logout</button>
       </div>
     </div>
   );
