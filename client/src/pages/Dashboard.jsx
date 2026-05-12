@@ -7,36 +7,61 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
 
-  // Load categories
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+
+  const [categoryError, setCategoryError] = useState("");
+  const [questionError, setQuestionError] = useState("");
+
+  // Load saved category from localStorage
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch((err) => console.log(err));
+    const savedCategory = localStorage.getItem("selectedCategory");
+
+    if (savedCategory) {
+      setSelectedCategory(JSON.parse(savedCategory));
+    }
   }, []);
 
+  // Load categories
   useEffect(() => {
-  const savedCategory = localStorage.getItem("selectedCategory");
+    setLoadingCategories(true);
+    setCategoryError("");
 
-  if (savedCategory) {
-    setSelectedCategory(JSON.parse(savedCategory));
-  }
-}, []);
+    fetch("http://localhost:5000/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data);
+        setLoadingCategories(false);
+      })
+      .catch(() => {
+        setCategoryError("Failed to load categories.");
+        setLoadingCategories(false);
+      });
+  }, []);
 
   // Load questions when category is selected
   useEffect(() => {
     if (!selectedCategory) return;
 
+    setLoadingQuestions(true);
+    setQuestionError("");
+
     fetch(`http://localhost:5000/api/categories/${selectedCategory.id}/questions`)
       .then((res) => res.json())
-      .then((data) => setQuestions(data))
-      .catch((err) => console.log(err));
+      .then((data) => {
+        setQuestions(data);
+        setLoadingQuestions(false);
+      })
+      .catch(() => {
+        setQuestionError("Failed to load questions.");
+        setLoadingQuestions(false);
+      });
   }, [selectedCategory]);
 
   function handleCategoryClick(category) {
-  setSelectedCategory(category);
-  localStorage.setItem("selectedCategory", JSON.stringify(category));
-}
+    setSelectedCategory(category);
+    localStorage.setItem("selectedCategory", JSON.stringify(category));
+  }
 
   return (
     <div>
@@ -54,18 +79,25 @@ export default function Dashboard() {
         >
           <h3>Categories</h3>
 
-          {categories.map((cat) => (
-            <p
-              key={cat.id}
-              onClick={() => handleCategoryClick(cat)}
-              style={{
-                cursor: "pointer",
-                fontWeight: selectedCategory?.id === cat.id ? "bold" : "normal"
-              }}
-            >
-              {cat.name}
-            </p>
-          ))}
+          {loadingCategories ? (
+            <p>Loading categories...</p>
+          ) : categoryError ? (
+            <p style={{ color: "red" }}>{categoryError}</p>
+          ) : (
+            categories.map((cat) => (
+              <p
+                key={cat.id}
+                onClick={() => handleCategoryClick(cat)}
+                style={{
+                  cursor: "pointer",
+                  fontWeight:
+                    selectedCategory?.id === cat.id ? "bold" : "normal"
+                }}
+              >
+                {cat.name}
+              </p>
+            ))
+          )}
         </div>
 
         {/* Main Content */}
@@ -82,7 +114,11 @@ export default function Dashboard() {
 
               <h2>{selectedCategory.name} Questions</h2>
 
-              {questions.length === 0 ? (
+              {loadingQuestions ? (
+                <p>Loading questions...</p>
+              ) : questionError ? (
+                <p style={{ color: "red" }}>{questionError}</p>
+              ) : questions.length === 0 ? (
                 <p>No questions yet.</p>
               ) : (
                 questions.map((q) => (
