@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
+import "../styles/Dashboard.css";
 
 export default function Dashboard() {
   const [categories, setCategories] = useState([]);
@@ -67,16 +68,9 @@ export default function Dashboard() {
     <div>
       <Header />
 
-      <div style={{ display: "flex", height: "calc(100vh - 70px)" }}>
+      <div className="dashboard-container">
         {/* Sidebar */}
-        <div
-          style={{
-            width: "250px",
-            borderRight: "1px solid black",
-            padding: "10px",
-            overflowY: "auto"
-          }}
-        >
+        <div className="dashboard-sidebar">
           <h3>Categories</h3>
 
           {loadingCategories ? (
@@ -88,11 +82,9 @@ export default function Dashboard() {
               <p
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat)}
-                style={{
-                  cursor: "pointer",
-                  fontWeight:
-                    selectedCategory?.id === cat.id ? "bold" : "normal"
-                }}
+                className={`category-item ${
+                  selectedCategory?.id === cat.id ? "category-selected" : ""
+                }`}
               >
                 {cat.name}
               </p>
@@ -101,15 +93,13 @@ export default function Dashboard() {
         </div>
 
         {/* Main Content */}
-        <div style={{ flex: 1, padding: "20px" }}>
+        <div className="dashboard-main">
           {!selectedCategory ? (
             <h2>Select a Category to view its questions</h2>
           ) : (
             <>
               <Link to="/ask">
-                <button style={{ padding: "10px 15px", marginBottom: "15px" }}>
-                  + Ask a Question
-                </button>
+                <button className="ask-btn">+ Ask a Question</button>
               </Link>
 
               <h2>{selectedCategory.name} Questions</h2>
@@ -122,14 +112,7 @@ export default function Dashboard() {
                 <p>No questions yet.</p>
               ) : (
                 questions.map((q) => (
-                  <div
-                    key={q.id}
-                    style={{
-                      border: "1px solid black",
-                      padding: "10px",
-                      marginBottom: "10px"
-                    }}
-                  >
+                  <div key={q.id} className="question-card">
                     <h3>
                       <Link to={`/questions/${q.id}`}>{q.title}</Link>
                     </h3>
