@@ -1,0 +1,36 @@
+.header {
+  height: 70px;
+  border-bottom: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  text-decoration: none;
+  color: black;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-user {
+  font-size: 16px;
+}
+
+.header button {
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid black;
+  border-radius: 6px;
+}
+
+.header button:hover {
+  background-color: #f2f2f2;
+}
